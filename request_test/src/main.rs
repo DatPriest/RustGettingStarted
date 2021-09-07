@@ -1,6 +1,7 @@
-
 use serde::{Deserialize, Serialize};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
+use std::fs::File;
+
 use serde_json::{Error, Value};
 
 #[tokio::main]
@@ -25,8 +26,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let req = client
         .get(urlHistoryData)
         .query(&query);
-    println!("{:#?}", req);
-        let resp = req
+    //println!("{:#?}", req);
+
+    let resp = req
         .send()
         .await?;
     let body = resp.text().await?;
@@ -36,10 +38,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let json : Value = serde_json::from_str(&body)?;
     //sortData(json);
-    println!("{:#?}", json["features"]);
+    send_data(&json).await;
+    //println!("{:#?}", json["features"]);
+    serde_json::to_writer(&File::create("data/data.json")?, &json["features"]).expect("Something got wrong");
     Ok(())
 }
 
+
+async fn send_data(data : &Value) {
+    let client : reqwest::Client = reqwest::Client::new();
+    let url ="http://localhost:9090/api/v1/targets";
+    let query = [("outFields", "*"), ("f", "json")];
+
+    let req = client
+        .post(url);
+    
+    let resp  = req.send().await;
+
+    match resp{
+        Ok(resp) => {
+            println!("{}", resp.status());
+            let body = &resp.text().await;
+            println!("{:#?}", body)
+        },
+        Err(e) => {
+            println!("{:#?}", e)
+        }
+    }
+
+
+
+}
 fn sortData(json : Value) {
     
 }
