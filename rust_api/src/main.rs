@@ -7,6 +7,8 @@ use std::fs::{self, File};
 use std::io::prelude::*;
 use std::io::LineWriter;
 
+// Access Token 168f3f23-82e5-4db7-9d81-747a43261217
+
 #[tokio::main]
 async fn main() {
     let store = Store::new();
@@ -54,7 +56,7 @@ async fn main() {
 }
 
 
-type Items = HashMap<Id, Item>;
+type Items = HashMap<i32, Item>;
 
 #[derive(Serialize, Deserialize)]
 struct Item {
@@ -92,12 +94,12 @@ async fn init_reply() -> std::io::Result<()> {
 }
 
 async fn update_grocery_list(
-    id: Id,
     item: Item,
     store: Store
 ) -> Result<impl warp::Reply, warp::Rejection> {
     init_reply();
-    store.grocery_list.write().insert(id, item);
+    store.grocery_list.write().insert(item.id, item);
+
     Ok(warp::reply::with_status(
         "Added items to the grocery list",
         http::StatusCode::CREATED,
@@ -118,9 +120,7 @@ async fn get_grocery_list(
 
     Ok(warp::reply::json(
         &result
-    ));
-
-    Ok(warp::reply::json(&String::new()))
+    ))
 }
 
 /*
@@ -130,11 +130,11 @@ async fn get_response() -> Result<impl warp::Reply, warp::Rejection> {
 }*/
 
 async fn delete_grocery_list_item(
-    id: Id,
+    item: Item,
     store: Store
     ) -> Result<impl warp::Reply, warp::Rejection> {
         init_reply();
-        store.grocery_list.write().remove(&id.name);
+        store.grocery_list.write().remove(&item.id);
 
         
         Ok(warp::reply::with_status(
@@ -151,7 +151,7 @@ fn json_body() -> impl Filter<Extract = (Item,), Error = warp::Rejection> + Clon
 }
 
 
-fn delete_json() -> impl Filter<Extract = (Id,), Error = warp::Rejection> + Clone {
+fn delete_json() -> impl Filter<Extract = (Item,), Error = warp::Rejection> + Clone {
     // When accepting a body, we want a JSON body
     // (and to reject huge payloads)...
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())
