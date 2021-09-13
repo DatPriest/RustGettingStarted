@@ -1,8 +1,13 @@
-FROM rust:1.49-alpine3.11
-
-WORKDIR /mnt/x/Dev/Projects/RustGettingStarted/rust_api
+FROM rust:1.55 as builder
+ENV USER root
 COPY . .
+WORKDIR /usr/bin/
+RUN cargo build
 
-RUN cargo install --path /var/www/
 
-CMD [ "cargo", "run" ]
+FROM debian:buster-slim
+WORKDIR /usr/bin/target/debug/
+RUN ls -h
+
+COPY --from=builder . .
+CMD [ "ls" ]

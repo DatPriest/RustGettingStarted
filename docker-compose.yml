@@ -47,13 +47,12 @@ services:
     image: redis:latest
     container_name: redis
     ports:
-    - 6379:6379
+    - 6379:6379  
   
-  rustapi:
-    build: 
-      context: .
-      dockerfile: ./rust_api/Dockerfile
+  rust_api:
+    build: ./rust_api
     container_name: rust_api
+
 
     
 volumes: 

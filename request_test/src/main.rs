@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
 use std::fs::File;
 
@@ -10,7 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Request MainKeys
 
     let urlKeyData = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_key_data_v/FeatureServer/0/query";
-
+    
     // Request History Data
 
     let urlHistoryData = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_history_v/FeatureServer/0/query";
