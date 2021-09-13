@@ -1,12 +1,8 @@
-//#[cfg_attr(target_os = "linux", path = "linux.rs")]
-//#[cfg_attr(windows, path = "windows.rs")]
-
 use std::collections::HashMap;
 use std::sync::Arc;
 use parking_lot::RwLock;
 use warp::{http, Filter};
 use serde::{Serialize, Deserialize};
-use std::fs::{self, File};
 
 // Access Token 168f3f23-82e5-4db7-9d81-747a43261217
 
@@ -89,16 +85,11 @@ impl Store {
     }
 }
 
-async fn init_reply() -> std::io::Result<()> {
-    serde_json::to_writer(&File::create("data/data.json")?, "call").expect("2");
-    Ok(())
-}
 
 async fn update_grocery_list(
     item: Item,
     store: Store
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    init_reply();
     store.grocery_list.write().insert(item.id, item);
 
     Ok(warp::reply::with_status(
@@ -110,7 +101,6 @@ async fn update_grocery_list(
 async fn get_grocery_list(
     store: Store
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    init_reply();
     let mut result = HashMap::new();
     let r = store.grocery_list.read();
 
@@ -134,7 +124,6 @@ async fn delete_grocery_list_item(
     item: Item,
     store: Store
     ) -> Result<impl warp::Reply, warp::Rejection> {
-        init_reply();
         store.grocery_list.write().remove(&item.id);
 
         
@@ -144,12 +133,6 @@ async fn delete_grocery_list_item(
         ))
 }
 
-
-fn json_body() -> impl Filter<Extract = (Item,), Error = warp::Rejection> + Clone {
-    // When accepting a body, we want a JSON body
-    // (and to reject huge payloads)...
-    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
-}
 
 
 fn delete_json() -> impl Filter<Extract = (Item,), Error = warp::Rejection> + Clone {
@@ -163,4 +146,3 @@ fn post_json() -> impl Filter<Extract = (Item,), Error = warp::Rejection> + Clon
     // (and to reject huge payloads)...
     warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
-

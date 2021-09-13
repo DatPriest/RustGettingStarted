@@ -13,19 +13,13 @@ COPY . .
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
 
 
-FROM alpine:3.14.2 as rust_api
+FROM alpine:3.14.2 as testing
 
-#RUN apt-get upgrade
-#RUN apk add pkg-config libssl-dev openssl-dev
-
-EXPOSE 3030
-
-COPY --from=builder /usr/src/task/target/x86_64-unknown-linux-musl/release/rust_api /usr/local/bin/rust_api
+COPY --from=builder /usr/src/task/target/x86_64-unknown-linux-musl/release/testing /usr/local/bin/testing
 WORKDIR /usr/local/bin
 
 ENV USER root
 
-RUN chmod 777 rust_api
+RUN chmod 777 testing
 
-CMD ["rust_api"]
-#CMD ["ls", "-lisan"]
+CMD ["testing"]

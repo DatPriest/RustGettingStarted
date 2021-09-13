@@ -52,6 +52,14 @@ services:
   rust_api:
     build: ./rust_api
     container_name: rust_api
+    ports:
+      - 3030:3030
+
+  testing:
+    build: ./testing
+    container_name: testing
+    ports:
+      - 8000:8000
 
 
     
