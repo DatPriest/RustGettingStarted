@@ -10,6 +10,8 @@ use reqwest::header::{USER_AGENT, CONTENT_LENGTH, CONTENT_TYPE};
 
 #[tokio::main]
 async fn main() {
+    let host = [127, 0, 0, 1];
+    let port = 8300;
     let metrics = "teststats EineMilliarde00000000";
 
 
@@ -28,6 +30,12 @@ async fn main() {
         Response::builder()
             .header(CONTENT_TYPE, "text/plain")
             .body(metrics.to_string())
+    });
+
+    let any = warp::any().map(|| {
+        Response::builder()
+        .header(CONTENT_TYPE, "text/plain")
+        .body("The wrong way")
     });
 
     let get_items = warp::get()
@@ -56,10 +64,10 @@ async fn main() {
 
 
 
-    let routes = add_items.or(get_items).or(delete_item).or(update_item).or(custom);
+    let routes = add_items.or(get_items).or(delete_item).or(update_item).or(custom).or(any);
 
     warp::serve(routes)
-        .run(([127, 0, 0, 1], 3030))
+        .run((host, port))
         .await;
 }
 

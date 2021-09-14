@@ -17,6 +17,5 @@ WORKDIR /usr/local/bin
 
 #RUN chmod +x /usr/local/bin/rust_api
 
-#EXPOSE 3030
 CMD ["/usr/local/bin/rust_api"]
 #CMD ["ls", "-lisan"]

@@ -1,11 +1,11 @@
-
-
 networks:
   default:
+  back:
 
 services:
   trusted_playback:
-    image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
+    image: debian
+    #image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
     restart: unless-stopped
     container_name: gf
     volumes:       
@@ -16,16 +16,16 @@ services:
     restart: always
     networks:
       - default
-
+      - back
 
   prometheus:
     container_name: prom
-    image: "prom/prometheus:latest"
+    build: ./prometheus
     ports: 
       - "9090:9090"
     volumes: 
       - prometheus_data:/prometheus
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       #- prometheus_data:/etc/prometheus/prometheus.yml
     command: 
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -36,10 +36,11 @@ services:
     restart: always
     networks:
       - default
+      - back
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
+    container_name: c-advisor
     ports:
     - 8080:8080
     volumes:
@@ -51,6 +52,7 @@ services:
     - redis
     networks:
       - default
+      - back
 
   redis:
     image: redis:latest
@@ -59,14 +61,15 @@ services:
     - 6379:6379  
     networks:
       - default
+      - back
   
   rust_api:
     build: ./rust_api
     container_name: rust_api
     ports:
-      - 3030:3030
+      - 8300:8300
     networks:
-      - default
+      - back
 
   testing:
     build: ./testing
@@ -75,6 +78,15 @@ services:
       - 8000:8000
     networks:
       - default
+      - back
+  test:
+    image: ubuntu
+    container_name: test
+    command: tail -f
+    links: 
+      - rust_api
+    networks:
+      - back
 
     
 volumes: 

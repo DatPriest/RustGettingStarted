@@ -29,7 +29,7 @@ scrape_configs:
     metrics_path: "/metrics"
     scrape_interval: 5s
     static_configs:
-    - targets: ['cadvisor:8080']
+    - targets: ['c-advisor:8080']
 
   - job_name: 'webpages'
     metrics_path: "/"
