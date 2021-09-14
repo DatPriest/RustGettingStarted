@@ -1,16 +1,21 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use parking_lot::RwLock;
-use warp::{http, Filter};
+use warp::{Filter, http, hyper::Response, reply::Html};
 use serde::{Serialize, Deserialize};
+use reqwest::header::{USER_AGENT, CONTENT_LENGTH, CONTENT_TYPE};
+
 
 // Access Token 168f3f23-82e5-4db7-9d81-747a43261217
 
 #[tokio::main]
 async fn main() {
+    let metrics = "teststats EineMilliarde00000000";
+
+
+    
     let store = Store::new();
     let store_filter = warp::any().map(move || store.clone());
-
     let add_items = warp::post()
         .and(warp::path("v1"))
         .and(warp::path("groceries"))
@@ -18,6 +23,12 @@ async fn main() {
         .and(post_json())
         .and(store_filter.clone())
         .and_then(update_grocery_list);
+
+    let custom = warp::path("v1").and(warp::path("metrics")).map(move || {
+        Response::builder()
+            .header(CONTENT_TYPE, "text/plain")
+            .body(metrics.to_string())
+    });
 
     let get_items = warp::get()
         .and(warp::path("v1"))
@@ -45,7 +56,7 @@ async fn main() {
 
 
 
-    let routes = add_items.or(get_items).or(delete_item).or(update_item);
+    let routes = add_items.or(get_items).or(delete_item).or(update_item).or(custom);
 
     warp::serve(routes)
         .run(([127, 0, 0, 1], 3030))
@@ -109,8 +120,8 @@ async fn get_grocery_list(
         result.insert(k, v);
     }
 
-    Ok(warp::reply::json(
-        &result
+    warp::reply::reply();
+    Ok(warp::reply::html("Test"
     ))
 }
 

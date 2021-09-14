@@ -1,23 +1,50 @@
-//#[cfg_attr(target_os = "linux", path = "linux.rs")]
-//#[cfg_attr(windows, path = "windows.rs")]
+use tide::Endpoint;
 
-// Access Token 168f3f23-82e5-4db7-9d81-747a43261217
-
-use actix_web::{App, HttpResponse, HttpServer, Responder, get};
-
-#[get("/")]
-async fn index() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+async fn handle_get_users(cx: Context<Database>) -> EndpointResult {
+    Ok(response::json(cx.app_data().get_all()))
 }
 
+async fn handle_get_user(cx: Context<Database>) -> EndpointResult {
+    let id = cx.param("id").client_err()?;
+    if let Some(user) = cx.app_data().get(id) {
+        Ok(response::json(user))
+    } else {
+        Err(StatusCode::NOT_FOUND)?
+    }
+}
 
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .service(index)
-    })
-        .bind("127.0.0.1:8000")?
-        .run()
-        .await
+async fn handle_update_user(mut cx: Context<Database>) -> EndpointResult<()> {
+    let user = (cx.body_json()).await?.client_err()?;
+    let id = cx.param("id").client_err()?;
+
+    if cx.app_data().set(id, user) {
+        Ok(())
+    } else {
+        Err(StatusCode::NOT_FOUND)?
+    }
+}
+
+async fn handle_create_user(mut cx: Context<Database>) -> EndpointResult<String> {
+    let user = (cx.body_json()).await?.client_err()?;
+    Ok(cx.app_data().insert(user).to_string())
+}
+
+async fn handle_delete_user(cx: Context<Database>) -> EndpointResult<String> {
+    let id = cx.param("id").client_err()?;
+    Ok(cx.app_data().delete(id).to_string())
+}
+
+fn main() {
+    // We create a new application with a basic, local database
+    // You can use your own implementation, or none: App::new(())
+    let mut app = App::new(Database::default());
+    app.at("/users")
+        .post(handle_create_user)
+        .get(handle_get_users);
+    app.at("/users/:id")
+        .get(handle_get_user)
+        .patch(handle_update_user)
+        .delete(handle_delete_user);
+
+    app.serve("127.0.0.1:8000").unwrap();
 }

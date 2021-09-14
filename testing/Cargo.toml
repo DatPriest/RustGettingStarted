@@ -5,7 +5,8 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-tokio = { version = "1.11.0", features = ["full", "macros"] }
-actix-web = "3.3.2"
-actix-rt = "2.2.0"
+[dependencies]  
+tide = "0.16.0"
+
+[build-dependencies]
+cc = { version = "1.0", features = ["parallel"] }

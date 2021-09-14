@@ -1,5 +1,6 @@
 global:
   scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  scrape_timeout:      10s
 
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
@@ -38,10 +39,10 @@ scrape_configs:
       - targets: ['status.cloud.google.com', 'it-solutions-klat.de', 'gitlab.it-solutions-klat.de', 'localhost:6379', 'localhost:9100'] 
   
   - job_name: 'rustApi'
-    metrics_path: "/v1/hello/test"
+    metrics_path: "/v1/metrics"
     scrape_interval: 5s
 
     static_configs:
-      - targets: ['localhost:3030']
+      - targets: ['rust_api:3030']
 
       
