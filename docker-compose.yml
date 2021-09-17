@@ -1,11 +1,10 @@
 networks:
   default:
-  back:
+    driver: bridge
 
 services:
   trusted_playback:
-    image: debian
-    #image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
+    image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
     restart: unless-stopped
     container_name: gf
     volumes:       
@@ -16,7 +15,6 @@ services:
     restart: always
     networks:
       - default
-      - back
 
   prometheus:
     container_name: prom
@@ -36,7 +34,6 @@ services:
     restart: always
     networks:
       - default
-      - back
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -52,7 +49,6 @@ services:
     - redis
     networks:
       - default
-      - back
 
   redis:
     image: redis:latest
@@ -61,7 +57,6 @@ services:
     - 6379:6379  
     networks:
       - default
-      - back
   
   rust_api:
     build: ./rust_api
@@ -69,7 +64,7 @@ services:
     ports:
       - 8300:8300
     networks:
-      - back
+      - default
 
   testing:
     build: ./testing
@@ -78,16 +73,11 @@ services:
       - 8000:8000
     networks:
       - default
-      - back
   test:
     image: ubuntu
     container_name: test
     command: tail -f
-    links: 
-      - rust_api
-    networks:
-      - back
-
+      
     
 volumes: 
   prometheus_data: {}

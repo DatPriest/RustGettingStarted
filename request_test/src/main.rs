@@ -1,6 +1,7 @@
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
-use std::fs::File;
+use std::{array, collections::HashMap, convert::TryInto};
 
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
+use serde::{Serialize, Deserialize};
 use serde_json::{Error, Value};
 
 #[tokio::main]
@@ -32,16 +33,78 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     let body = resp.text().await?;
 
+    let data : Value = serde_json::from_str(&body)?;
+    let t = &data["features"];
+    let mut rki_array : Vec<RkiData> = Vec::<RkiData>::new();
+    let mut count = 0;
+    while !t[count].is_null() {
+        if count > 5
+        {
+            break;
+        }
+        rki_array.push(RkiData::convert_to_class(&t[count]["attributes"]));
 
-    //let body = get_data(urlHistoryData, client, query).await; 
-    
-    let json : Value = serde_json::from_str(&body)?;
-    //sortData(json);
-    send_data(&json).await;
-    //println!("{:#?}", json["features"]);
-    serde_json::to_writer(&File::create("data/data.json")?, &json["features"]).expect("Something got wrong");
+        count += 1;
+        println!("Array Nr #{}", count)
+    }
+    println!("{:#?}", rki_array);
     Ok(())
 }
+
+#[derive(Deserialize, Debug, Copy, Clone)]
+struct RkiData {
+    AdmUnitId: i16,
+    AnzFallErkrankung: i32,
+    AnzFallMeldung: i32,
+    AnzFallNeu: i32,
+    AnzFallVortag: i32,
+    BundeslandId: i8,
+    Datum: i64,
+    KumFall: i32,
+    ObjectId: i32
+}
+
+impl RkiData {
+    fn new(    
+        AdmUnitId: i16,
+        AnzFallErkrankung: i32,
+        AnzFallMeldung: i32,
+        AnzFallNeu: i32,
+        AnzFallVortag: i32,
+        BundeslandId: i8,
+        Datum: i64,
+        KumFall: i32,
+        ObjectId: i32
+    ) -> Self {
+        RkiData {
+            AdmUnitId,
+            AnzFallErkrankung,
+            AnzFallMeldung,
+            AnzFallNeu,
+            AnzFallVortag,
+            BundeslandId,
+            Datum,
+            KumFall,
+            ObjectId,
+        }
+    }
+
+    fn convert_to_class(dat : &Value) -> RkiData {
+        let b = RkiData::new(
+            dat["AdmUnitId"].to_string().parse::<i16>().unwrap(), 
+            dat["AnzFallErkrankung"].to_string().parse::<i32>().unwrap(), 
+            dat["AnzFallMeldung"].to_string().parse::<i32>().unwrap(), 
+            dat["AnzFallNeu"].to_string().parse::<i32>().unwrap(), 
+            dat["AnzFallVortag"].to_string().parse::<i32>().unwrap(), 
+            dat["BundeslandId"].to_string().parse::<i8>().unwrap(), 
+            dat["Datum"].to_string().parse::<i64>().unwrap(), 
+            dat["KumFall"].to_string().parse::<i32>().unwrap(), 
+            dat["ObjectId"].to_string().parse::<i32>().unwrap()
+        );
+        return b;
+    }
+}
+
 
 
 async fn send_data(data : &Value) {

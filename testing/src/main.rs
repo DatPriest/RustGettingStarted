@@ -1,6 +1,7 @@
 fn main() {
-    let counter = 0;
+    let mut counter = 0;
     loop {
-        println!(counter += 1)
+        println!("{0}", counter);
+        counter += 1;
     }
 }
