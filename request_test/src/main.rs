@@ -1,5 +1,3 @@
-use std::{array, collections::HashMap, convert::TryInto};
-
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
 use serde::{Serialize, Deserialize};
 use serde_json::{Error, Value};

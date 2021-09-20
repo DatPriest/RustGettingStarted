@@ -1,8 +1,10 @@
 mod request;
 
 use std::any::Any;
+use std::convert::TryInto;
 use std::{collections::HashMap};
 use std::sync::Arc;
+use chrono::NaiveDateTime;
 use parking_lot::RwLock;
 use request::request::get_rki_data;
 use warp::{Filter, http, hyper::Response};
@@ -17,11 +19,13 @@ use crate::request::request::RkiData;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_ansi(false)
+        .with_env_filter("debug")
+        .init();
     let host = [0, 0, 0, 0];
     let port = 3030;
     let metrics = "process_max_fds 1.048576e+06";
-
-
     
     let store = Store::new();
     let store_filter = warp::any().map(move || store.clone());
@@ -105,19 +109,25 @@ async fn update_grocery_list(
 async fn get_grocery_list(
     store: Store
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    //let mut result = HashMap::new();
+    let mut result = HashMap::new();
     //let r = store.grocery_list.read();
 
     let data = get_rki_data().await;
-    println!("{:#?}", &data);
-
-    for (k, v) in data.unwrap() {
-        result.insert(k, v);
+    for feature in &data.unwrap().features {
+        println!("{:?}", feature.attributes);
+        result.insert(feature.attributes.ObjectId, feature.attributes);
     }
-
-    warp::reply::reply();
-    Ok(warp::reply::json(&data
+    //let html = format_to_prom(result).await;
+    Ok(warp::reply::json(&result
     ))
+}
+
+async fn format_to_prom(data : HashMap<i32, RkiData>) -> String {
+    let mut text = "".to_owned();
+    for rki_data in data.into_values() {
+        text += &("<br>".to_owned() +  &NaiveDateTime::from_timestamp(rki_data.Datum, 0).to_string() + &"</br>".to_owned());
+    }
+    return text;
 }
 
 

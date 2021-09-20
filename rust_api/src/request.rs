@@ -1,12 +1,20 @@
 
 pub mod request {
+use std::io::IoSlice;
+use std::io::IoSliceMut;
+use std::io::Write;
+use std::time::Duration;
+use std::time::Instant;
+use std::time::SystemTime;
 use std::{array, collections::HashMap};
 
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
 use serde::{Serialize, Deserialize};
+use serde::ser::{Serializer, SerializeStruct};
 use serde_json::{Value};
+use warp::body::json;
 
-    pub async fn get_rki_data() -> Result<Vec<RkiData>, Box<dyn std::error::Error>> {
+    pub async fn get_rki_data() -> Result<RkiWrapper, Box<dyn std::error::Error>> {
 
         // Request MainKeys
     
@@ -24,34 +32,77 @@ use serde_json::{Value};
             .get(urlHistoryData)
             .query(&query);
     
-        let resp = req
+        let data_resp :RkiWrapper = req
             .send()
-            .await?;
-        let body = resp.text().await?;
+            .await?.json().await?;
     
-        let data : Value = serde_json::from_str(&body)?;
-        let mut rki_array : Vec<RkiData> = Vec::<RkiData>::new();
+        //let body = data_resp.text().await?;
+        //println!("{}", body);
+        //let data : Value = serde_json::from_str(&body)?;
+        //let mut rki_array : Vec<RkiData> = Vec::<RkiData>::new();
         let mut count = 0;
-        while !data[count].is_null() {
+        /*while !data[count].is_null() {
             rki_array.push(RkiData::convert_to_class(&data[count]["attributes"]));
             count += 1;
-            println!("Array Nr #{}", count)
+            println!("Array Nr #{}", count);
         }
-        Ok(rki_array)
+        let mut file : std::fs::File = std::fs::File::create("../data/data.json")?;
+        //let data = serde_json::json!(rki_array);
+        match file.write(data.to_string().as_bytes()) {
+            Ok(us) => {
+
+            },
+            Err(err) => {
+                tracing::error!(?err);
+                let mut file: std::fs::File = std::fs::File::create("../logs/log")?;
+                file.write(b"Something crashed")?;
+            }
+        }*/
+        tracing::info!(?data_resp);
+        Ok(data_resp)
     }
     
-    #[derive(Deserialize, Serialize, Debug, Copy, Clone)]
-    pub struct RkiData {
-        AdmUnitId: i16,
-        AnzFallErkrankung: i32,
-        AnzFallMeldung: i32,
-        AnzFallNeu: i32,
-        AnzFallVortag: i32,
-        BundeslandId: i8,
-        Datum: i64,
-        KumFall: i32,
-        ObjectId: i32
+    #[derive(Deserialize, Debug, Clone)]
+    pub struct RkiAttributes {
+        pub attributes : RkiData
+
     }
+
+    #[derive(Deserialize, Debug, Clone)]
+    pub struct RkiWrapper {
+        pub features: Vec<RkiAttributes>
+    }
+
+    #[derive(Deserialize, Debug, Copy, Clone)]
+    pub struct RkiData {
+        pub AdmUnitId: i16,
+        pub AnzFallErkrankung: i32,
+        pub AnzFallMeldung: i32,
+        pub AnzFallNeu: i32,
+        pub AnzFallVortag: i32,
+        pub BundeslandId: i8,
+        pub Datum: i64,
+        pub KumFall: i32,
+        pub ObjectId: i32
+    }
+
+impl Serialize for RkiData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+        let mut state = serializer.serialize_struct("RkiData", 3)?;
+        state.serialize_field("AdmUnitId", &self.AdmUnitId)?;
+        state.serialize_field("AnzFallErkrankung", &self.AnzFallErkrankung)?;
+        state.serialize_field("AnzFallMeldung", &self.AnzFallMeldung)?;
+        state.serialize_field("AnzFallNeu", &self.AnzFallNeu)?;
+        state.serialize_field("AnzFallVortag", &self.AnzFallVortag)?;
+        state.serialize_field("BundeslandId", &self.BundeslandId)?;
+        state.serialize_field("Datum", &self.Datum)?;
+        state.serialize_field("KumFall", &self.KumFall)?;
+        state.serialize_field("ObjectId", &self.ObjectId)?;
+        state.end()
+    }
+}
     
     impl RkiData {
         fn new(    
@@ -91,5 +142,40 @@ use serde_json::{Value};
                 dat["ObjectId"].to_string().parse::<i32>().unwrap()
             );
         }
-    }  
+    }
+
+}
+
+mod test{
+    use super::request::RkiWrapper;
+
+    #[test]
+    fn test_json() {
+        let a = r#"{
+            "objectIdFieldName":"ObjectId",
+            "uniqueIdField":{
+               "name":"ObjectId",
+               "isSystemMaintained":true
+            },
+            "globalIdFieldName":"",
+            "fields":[],
+            "features":[
+               {
+                  "attributes":{
+                     "AdmUnitId":4011,
+                     "BundeslandId":4,
+                     "Datum":1586995200000,
+                     "AnzFallNeu":0,
+                     "AnzFallVortag":44,
+                     "AnzFallErkrankung":8,
+                     "AnzFallMeldung":38,
+                     "KumFall":527,
+                     "ObjectId":44062
+                    }
+                }
+            ]  
+        }"#;
+        let rki : RkiWrapper = serde_json::from_str(&a).unwrap();
+        dbg!(rki);
+    }
 }

@@ -4,7 +4,8 @@ networks:
 
 services:
   trusted_playback:
-    image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
+    #image: nexus.intern.cube-tec.com:8083/trusted-playback-grafana-dev:latest
+    image: grafana/grafana
     restart: unless-stopped
     container_name: gf
     volumes:       
