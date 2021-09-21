@@ -24,6 +24,7 @@ async fn main() {
 
 #[get("/metrics")]
 async fn get_data () -> String {
+    /* 
     let mut result = HashMap::new();
     let mut vec : Vec<RkiData> = Vec::<RkiData>::new(); 
     let data = get_rki_data().await;
@@ -37,8 +38,8 @@ async fn get_data () -> String {
     for _data in vec {
         test += &_data.to_prometheus_string();
     }
-    println!("{}", test);
-    return test;
+    println!("{}", test);*/
+    return "test".to_string();
     //return "".to_owned();
 }
 

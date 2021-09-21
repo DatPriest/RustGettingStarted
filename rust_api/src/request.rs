@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 use serde::ser::{SerializeStruct};
 use serde_json::{Value};
 
-    pub async fn get_rki_data() -> Result<RkiWrapper, Box<dyn std::error::Error>> {
+    pub async fn get_rki_data() -> Result<bool, Box<dyn std::error::Error>> {
 
         // Request MainKeys
     
@@ -14,19 +14,20 @@ use serde_json::{Value};
         // Request History Data
     
         let urlHistoryData = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_history_v/FeatureServer/0/query";
+        let weatherForecast = "api.openweathermap.org/data/2.5/weather?q=Nordenham&appid=0d754cce3d011e0dcd57dd4ae2f7a414";
     
         let client = reqwest::Client::new();
         let lk_id = "04011"; 
         let query = [("outFields", "*"), ("f", "json"), ("geometry", "false"), ("where", &format!("AdmUnitId={}", lk_id))];
     
         let req = client
-            .get(urlHistoryData)
-            .query(&query);
+            .get(weatherForecast);
     
-        let data_resp :RkiWrapper = req
+        let data_resp = req
             .send()
-            .await?.json().await?;
+            .await?;
     
+        println!("{:?}", data_resp.text().await?);
         //let body = data_resp.text().await?;
         //println!("{}", body);
         //let data : Value = serde_json::from_str(&body)?;
@@ -50,7 +51,7 @@ use serde_json::{Value};
             }
         }*/
         //tracing::info!(?data_resp);
-        Ok(data_resp)
+        Ok(true)
     }
     
     #[derive(Deserialize, Debug, Clone)]
