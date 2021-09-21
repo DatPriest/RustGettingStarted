@@ -59,25 +59,13 @@ services:
     networks:
       - default
   
-  rust_api:
-    build: ./rust_api
-    container_name: rust_api
-    ports:
-      - 8300:8300
-    networks:
-      - default
-
-  testing:
-    build: ./testing
-    container_name: testing
-    ports:
-      - 8000:8000
-    networks:
-      - default
-  test:
-    image: ubuntu
-    container_name: test
-    command: tail -f
+  #rust_api:
+    #build: ./rust_api
+    #container_name: rust_api
+    #ports:
+    #  - 8300:8300
+    #networks:
+    #  - default
       
     
 volumes: 

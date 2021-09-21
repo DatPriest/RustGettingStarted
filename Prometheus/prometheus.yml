@@ -33,9 +33,9 @@ scrape_configs:
     
   - job_name: 'rustApi'
     metrics_path: "/v1/metrics"
-    scrape_interval: 5s
+    scrape_interval: 10s
 
     static_configs:
-      - targets: ['rust_api:8300', '172.31.188.107:3030', '192.168.224.1:3030']
+      - targets: ['192.168.0.5:8000', '172.18.112.1:8000', 'rust_api:8000', '127.0.0.1:8000']
 
       

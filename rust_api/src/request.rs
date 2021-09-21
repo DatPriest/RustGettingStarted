@@ -1,18 +1,9 @@
 
 pub mod request {
-use std::io::IoSlice;
-use std::io::IoSliceMut;
-use std::io::Write;
-use std::time::Duration;
-use std::time::Instant;
-use std::time::SystemTime;
-use std::{array, collections::HashMap};
 
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, CONTENT_LENGTH};
 use serde::{Serialize, Deserialize};
-use serde::ser::{Serializer, SerializeStruct};
+use serde::ser::{SerializeStruct};
 use serde_json::{Value};
-use warp::body::json;
 
     pub async fn get_rki_data() -> Result<RkiWrapper, Box<dyn std::error::Error>> {
 
@@ -58,7 +49,7 @@ use warp::body::json;
                 file.write(b"Something crashed")?;
             }
         }*/
-        tracing::info!(?data_resp);
+        //tracing::info!(?data_resp);
         Ok(data_resp)
     }
     
@@ -73,7 +64,7 @@ use warp::body::json;
         pub features: Vec<RkiAttributes>
     }
 
-    #[derive(Deserialize, Debug, Copy, Clone)]
+    #[derive(Deserialize, Debug, Copy, Clone, PartialEq)]
     pub struct RkiData {
         pub AdmUnitId: i16,
         pub AnzFallErkrankung: i32,
@@ -85,6 +76,9 @@ use warp::body::json;
         pub KumFall: i32,
         pub ObjectId: i32
     }
+
+
+
 
 impl Serialize for RkiData {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -128,7 +122,7 @@ impl Serialize for RkiData {
                 ObjectId,
             }
         }
-    
+
         fn convert_to_class(dat : &Value) -> RkiData {
             return RkiData::new(
                 dat["AdmUnitId"].to_string().parse::<i16>().unwrap(), 
@@ -141,6 +135,22 @@ impl Serialize for RkiData {
                 dat["KumFall"].to_string().parse::<i32>().unwrap(), 
                 dat["ObjectId"].to_string().parse::<i32>().unwrap()
             );
+        }
+
+        pub fn to_prometheus_string(&self) -> String {
+            let mut result : String = String::new();
+            result += "rkidata{";
+            result += "AdmUnitId=\""; result += &self.AdmUnitId.to_string(); result += "\" ";
+            result += &self.AnzFallErkrankung.to_string();
+            result += &self.AnzFallMeldung.to_string();
+            result += &self.AnzFallNeu.to_string();
+            result += &self.AnzFallVortag.to_string();
+            result += &self.BundeslandId.to_string();
+            result += &self.Datum.to_string();
+            result += &self.KumFall.to_string();
+            result += &self.ObjectId.to_string();
+            result += "}\n";
+            return result;
         }
     }
 
