@@ -32,7 +32,7 @@ scrape_configs:
     - targets: ['c-advisor:8080']
     
   - job_name: 'rustApi'
-    metrics_path: "/v1/metrics"
+    metrics_path: "/v1/weather/metrics"
     scrape_interval: 10s
 
     static_configs:
