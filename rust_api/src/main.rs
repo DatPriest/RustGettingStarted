@@ -2,7 +2,6 @@ mod request;
 mod structs;
 #[macro_use] extern crate rocket;
 use std::{collections::HashMap};
-use chrono::NaiveDateTime;
 use request::request::get_weather_data;
 use structs::{RkiData, WeatherWrapper};
 use crate::request::request::get_rki_data;
@@ -17,7 +16,6 @@ async fn main() {
         .with_env_filter("debug")
         .init();
 
-    let metrics = "process_max_fds 1.048576e+06";
     rocket::build()
         .mount("/v1/", routes![get_data, get_weather_metrics])
         .launch()
@@ -92,12 +90,4 @@ fn to_celcius(float : f32) -> f32 {
 
 fn to_kmh(float : f32) -> f32 {
     float * 3.6
-}
-
-async fn format_to_prom_rkidata(data : HashMap<i32, RkiData>) -> String {
-    let mut text = "".to_owned();
-    for rki_data in data.into_values() {
-        text += &("<br>".to_owned() +  &NaiveDateTime::from_timestamp(rki_data.datum, 0).to_string() + &"</br>".to_owned());
-    }
-    text
 }

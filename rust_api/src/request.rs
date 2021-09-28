@@ -1,8 +1,7 @@
 
 pub mod request {
     use reqwest::header::{HeaderMap, CONTENT_TYPE, HeaderValue};
-    use serde_json::Value;
-    use crate::structs::{RkiAttributes, RkiData, RkiWrapper, WeatherWrapper};
+    use crate::structs::{RkiWrapper, WeatherWrapper};
 
 
 
@@ -51,7 +50,7 @@ pub mod request {
 }
 
 mod test {
-    use crate::structs::{RkiAttributes, RkiData, RkiWrapper};
+    
 
     #[test]
     fn test_json() {
@@ -79,7 +78,7 @@ mod test {
                 }
             ]  
         }"#;
-        let rki : RkiWrapper = serde_json::from_str(&a).unwrap();
+        let rki : crate::structs::RkiWrapper = serde_json::from_str(&a).unwrap();
         dbg!(rki);
     }
 }
