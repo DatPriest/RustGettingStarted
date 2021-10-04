@@ -11,10 +11,10 @@ async fn main() {
     .with_env_filter("debug")
     .init();
 
-    let r = rocket::build()
-        .mount("/api/", routes![delay, hello, world, blocking_task])
+    rocket::build()
+        .mount("/api/", routes![no_route, delay, hello, world, blocking_task])
         .launch()
-        .await;
+        .await.unwrap();
 
 }
 
