@@ -21,27 +21,6 @@ impl Numbers {
             Self::Uneven(v)
         }
     }
-
-    /// Returns `true` if the numbers is [`Uneven`].
-    ///
-    /// [`Uneven`]: Numbers::Uneven
-    fn is_uneven(&self) -> bool {
-        matches!(self, Self::Uneven(..))
-    }
-
-    /// Returns `true` if the numbers is [`Even`].
-    ///
-    /// [`Even`]: Numbers::Even
-    fn is_even(&self) -> bool {
-        matches!(self, Self::Even(..))
-    }
-
-    fn into_i128(self) -> i128 {
-        match self {
-            Numbers::Uneven(v) => v,
-            Numbers::Even(v) => v,
-        }
-    }
 }
 
 fn range() {
@@ -77,7 +56,7 @@ impl Data {
 
 impl X for Data {
     fn summarize(&self) -> String {
-        format!("Key: {}\nValue: {}", self.key, self.value).
+        format!("Key: {}\nValue: {}", self.key, self.value)
     }
 }
 
