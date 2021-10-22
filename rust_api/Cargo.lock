@@ -1275,6 +1275,7 @@ dependencies = [
  "serde-value",
  "serde_json",
  "tokio",
+ "toml",
  "tracing",
  "tracing-futures",
  "tracing-subscriber",

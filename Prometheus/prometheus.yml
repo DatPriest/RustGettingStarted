@@ -36,6 +36,6 @@ scrape_configs:
     scrape_interval: 10s
 
     static_configs:
-      - targets: ['192.168.0.5:8000', '172.18.112.1:8000', 'rust_api:8000', '127.0.0.1:8000']
+      - targets: ['192.168.192.1:8000', 'localhost:8000', 'rust_api:8000', '127.0.0.1:8000']
 
       

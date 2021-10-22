@@ -114,6 +114,8 @@ pub struct WeatherWrapper {
     pub wind: WindData,
     pub clouds: HashMap<String, serde_json::Value>,
     pub dt: i64,
+    pub rain: Option<RainData>,
+    pub snow: Option<SnowData>,
 }
 
 impl WeatherWrapper {
@@ -126,6 +128,8 @@ impl WeatherWrapper {
         wind: WindData,
         clouds: HashMap<String, serde_json::Value>,
         dt: i64,
+        rain: Option<RainData>,
+        snow: Option<SnowData>,
     ) -> Self {
         Self {
             coord,
@@ -136,6 +140,8 @@ impl WeatherWrapper {
             wind,
             clouds,
             dt,
+            rain,
+            snow,
         }
     }
 
@@ -153,6 +159,22 @@ pub struct WindData {
     pub speed: f32,
     pub deg: f32,
     gust: f32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RainData {
+    #[serde(rename = "1h")]
+    pub h1: Option<f32>,
+    #[serde(rename = "3h")]
+    pub h3: Option<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SnowData {
+    #[serde(rename = "1h")]
+    pub h1: Option<f32>,
+    #[serde(rename = "3h")]
+    pub h3: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,0 +1,1 @@
+parameter = {url = "https://api.openweathermap.org/data/2.5/weather?", q = "Bremen", appid = "0d754cce3d011e0dcd57dd4ae2f7a414"}

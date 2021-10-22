@@ -43,6 +43,8 @@ async fn get_data() -> String {
 
 #[get("/weather/metrics")]
 async fn get_weather_metrics() -> String {
+    let x = "getdata";
+    tracing::debug!(?x);
     match get_weather_data().await {
         Ok(mut _result) => format_to_prom_weather_metrics(_result),
         Err(_err) => {
@@ -74,6 +76,26 @@ fn format_to_prom_weather_metrics(wrapper: WeatherWrapper) -> String {
 
     text += "\ndeg ";
     text += &wrapper.wind.deg.to_string();
+
+    if let Some(data) = &wrapper.rain {
+        text += "\nrainvolume ";
+        if let Some(v) = data.h1 {
+            text += &v.to_string();
+        }
+        if let Some(v) = data.h1 {
+            text += &v.to_string();
+        }
+    }
+
+    if let Some(data) = &wrapper.snow {
+        text += "\nsnowvolume ";
+        if let Some(v) = data.h1 {
+            text += &v.to_string();
+        }
+        if let Some(v) = data.h1 {
+            text += &v.to_string();
+        }
+    }
 
     //for data in attributeList {
     //    text += &("<br>".to_owned() +  &NaiveDateTime::from_timestamp(data.dt, 0).to_string() + &"</br>".to_owned());
