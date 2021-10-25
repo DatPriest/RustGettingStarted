@@ -2,7 +2,6 @@ mod request;
 mod structs;
 #[macro_use]
 extern crate rocket;
-use crate::request::request::get_rki_data;
 use request::request::get_weather_data;
 use std::collections::HashMap;
 use structs::{RkiData, WeatherWrapper};
@@ -17,28 +16,10 @@ async fn main() {
         .init();
 
     rocket::build()
-        .mount("/v1/", routes![get_data, get_weather_metrics])
+        .mount("/v1/", routes![get_weather_metrics])
         .launch()
         .await
         .expect("This could not be a error");
-}
-
-#[get("/rkidata/metrics")]
-async fn get_data() -> String {
-    let mut vec: Vec<RkiData> = Vec::<RkiData>::new();
-    let mut result = HashMap::new();
-    let data = get_rki_data().await;
-    let mut test = "".to_string();
-
-    data.unwrap().features.iter().for_each(|feature| {
-        result.insert(feature.attributes.object_id, feature.attributes);
-        vec.push(feature.attributes);
-    });
-
-    vec.into_iter().for_each(|x| {
-        test += &x.as_prometheus_string();
-    });
-    test
 }
 
 #[get("/weather/metrics")]
