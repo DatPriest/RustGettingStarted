@@ -1,12 +1,12 @@
 pub mod request {
     use std::{fs, path::Path};
 
-    use crate::structs::{RkiWrapper, WeatherWrapper};
+    use crate::structs::WeatherWrapper;
     use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
     use rocket::figment::providers::Toml;
 
     pub async fn get_weather_data() -> Result<WeatherWrapper, Box<dyn std::error::Error>> {
-        let parameter = load_config();
+        let parameter = load_config(Path::new("../config.toml"));
         tracing::error!(?parameter);
         let weather_forecast = "https://api.openweathermap.org/data/2.5/weather?q=Nordenham&appid=0d754cce3d011e0dcd57dd4ae2f7a414";
 
@@ -22,7 +22,8 @@ pub mod request {
     }
 
     pub fn load_config(path: &Path) -> String {
-        let toml: str = toml::from_str(&fs::read_to_string(path).unwrap()).unwrap();
+        tracing::error!(?path);
+        let toml: String = toml::from_str(&fs::read_to_string(path).unwrap()).unwrap();
 
         let bytes = include_bytes!("../config.toml").to_vec();
         //for byte in bytes {
@@ -32,38 +33,5 @@ pub mod request {
         let x = String::from_utf8(bytes).unwrap().to_string();
         return x;
         //std::str::from_utf8(bytes).unwrap()
-    }
-}
-
-mod test {
-
-    #[test]
-    fn test_json() {
-        let a = r#"{
-            "objectIdFieldName":"ObjectId",
-            "uniqueIdField":{
-               "name":"ObjectId",
-               "isSystemMaintained":true
-            },
-            "globalIdFieldName":"",
-            "fields":[],
-            "features":[
-               {
-                  "attributes":{
-                     "AdmUnitId":4011,
-                     "BundeslandId":4,
-                     "Datum":1586995200000,
-                     "AnzFallNeu":0,
-                     "AnzFallVortag":44,
-                     "AnzFallErkrankung":8,
-                     "AnzFallMeldung":38,
-                     "KumFall":527,
-                     "ObjectId":44062
-                    }
-                }
-            ]  
-        }"#;
-        let rki: crate::structs::RkiWrapper = serde_json::from_str(&a).unwrap();
-        dbg!(rki);
     }
 }

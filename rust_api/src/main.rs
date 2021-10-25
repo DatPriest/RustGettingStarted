@@ -4,7 +4,7 @@ mod structs;
 extern crate rocket;
 use request::request::get_weather_data;
 use std::collections::HashMap;
-use structs::{RkiData, WeatherWrapper};
+use structs::WeatherWrapper;
 
 // Access Token 168f3f23-82e5-4db7-9d81-747a43261217
 
