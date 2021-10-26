@@ -6,9 +6,9 @@ pub mod request {
     use rocket::figment::providers::Toml;
 
     pub async fn get_weather_data() -> Result<WeatherWrapper, Box<dyn std::error::Error>> {
-        let parameter = load_config(Path::new("../config.toml"));
-        tracing::error!(?parameter);
-        let weather_forecast = "https://api.openweathermap.org/data/2.5/weather?q=Nordenham&appid=0d754cce3d011e0dcd57dd4ae2f7a414";
+        //let parameter = load_config(Path::new("../config.toml"));
+        //tracing::error!(?parameter);
+        let weather_forecast = "https://api.openweathermap.org/data/2.5/weather?q=Bremen&appid=0d754cce3d011e0dcd57dd4ae2f7a414";
 
         let client = reqwest::Client::new();
 

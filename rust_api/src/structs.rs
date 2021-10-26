@@ -57,7 +57,7 @@ impl WeatherWrapper {
 pub struct WindData {
     pub speed: f32,
     pub deg: f32,
-    gust: f32,
+    gust: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -84,8 +84,8 @@ pub struct MainData {
     pub temp_max: f32,
     pub pressure: f32,
     pub humidity: f32,
-    pub sea_level: f32,
-    pub grnd_level: f32,
+    pub sea_level: Option<f32>,
+    pub grnd_level: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

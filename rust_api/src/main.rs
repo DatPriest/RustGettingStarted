@@ -1,21 +1,45 @@
+mod config;
 mod request;
 mod structs;
 #[macro_use]
 extern crate rocket;
+use argh::FromArgs;
 use request::request::get_weather_data;
+use rocket::figment::Figment;
 use std::collections::HashMap;
 use structs::WeatherWrapper;
+
+///
+#[derive(FromArgs, Debug)]
+struct Params {
+    /// optional config override param
+    #[argh(option, short = 'c', long = "config")]
+    config: Option<String>,
+    /// request the version of the software
+    #[argh(switch)]
+    version: bool,
+}
 
 // Access Token 168f3f23-82e5-4db7-9d81-747a43261217
 
 #[tokio::main]
 async fn main() {
+    let params: Params = argh::from_env();
+    if params.version {
+        println!("{}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+    let cfg = config::load(params.config).expect("could not load config");
+    let mut figment = rocket::Config::figment()
+        .merge(("address", cfg.host))
+        .merge(("port", cfg.port));
+
     tracing_subscriber::fmt()
         .with_ansi(false)
         .with_env_filter("debug")
         .init();
 
-    rocket::build()
+    rocket::custom(figment)
         .mount("/v1/", routes![get_weather_metrics])
         .launch()
         .await
@@ -46,8 +70,10 @@ fn format_to_prom_weather_metrics(wrapper: WeatherWrapper) -> String {
     text += "\ntemp_max ";
     text += &to_celcius(wrapper.main.temp_max).to_string();
 
-    text += "\nsea_level ";
-    text += &wrapper.main.sea_level.to_string();
+    if let Some(v) = wrapper.main.sea_level {
+        text += "\nsea_level ";
+        text += &v.to_string();
+    }
 
     text += "\npressure ";
     text += &wrapper.main.pressure.to_string();
@@ -58,24 +84,28 @@ fn format_to_prom_weather_metrics(wrapper: WeatherWrapper) -> String {
     text += "\ndeg ";
     text += &wrapper.wind.deg.to_string();
 
+    text += "\nrainvolume ";
     if let Some(data) = &wrapper.rain {
-        text += "\nrainvolume ";
         if let Some(v) = data.h1 {
             text += &v.to_string();
         }
-        if let Some(v) = data.h1 {
+        if let Some(v) = data.h3 {
             text += &v.to_string();
         }
+    } else {
+        text += "0";
     }
 
+    text += "\nsnowvolume ";
     if let Some(data) = &wrapper.snow {
-        text += "\nsnowvolume ";
         if let Some(v) = data.h1 {
             text += &v.to_string();
         }
-        if let Some(v) = data.h1 {
+        if let Some(v) = data.h3 {
             text += &v.to_string();
         }
+    } else {
+        text += "0";
     }
 
     //for data in attributeList {
