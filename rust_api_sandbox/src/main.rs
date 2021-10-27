@@ -4,7 +4,17 @@ use mysql::{from_row, Opts, Pool};
 use rocket::Data;
 use rocket::{post, routes};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 // Access Token 168f3f23-82e5-4db7-9d81-747a43261217
+
+#[derive(Debug, Error)]
+pub enum ErrorList {
+    #[error("the data for key `{0}` is not available")]
+    Value(String),
+
+    #[error("data store disconnected")]
+    Disconnect(#[from] mysql::UrlError),
+}
 
 #[tokio::main]
 async fn main() {
@@ -13,6 +23,7 @@ async fn main() {
         .with_env_filter("debug")
         .init();
 
+    init_db();
     rocket::build()
         .mount("/v1/", routes![post_player_data])
         .launch()
@@ -20,14 +31,21 @@ async fn main() {
         .expect("This could not be a error");
 }
 
-#[post("/player/data", format = "application/json", data = "<data>")]
-async fn post_player_data<'a>(mut data: Data<'a>) -> String {
-    let json = std::str::from_utf8(data.peek(512).await).unwrap();
-    let player_data: PlayerData = serde_json::from_str(json)
-        .map_err(|e| println!("Error: {}", e.to_string()))
-        .unwrap();
+/// need the parameter "dbname" for checkin if its existing already
+fn init_db() -> Result<bool, ErrorList> {
+    let url = "mysql://root:root@localhost:3306/sandbox";
+    let pool = Pool::new(Opts::from_url(url)?)?;
+    let mut conn = pool.get_conn()?;
+}
 
-    println!("All of the data: {:?}", player_data);
+fn get_struct_player_data(mut data: Data) -> Result<PlayerData, ErrorList> {
+    serde_json::from_str(data)?
+}
+
+#[get("/player/data", format = "application/json", data = "<data>")]
+async fn get_player_data(mut data: Data<'a>) -> String {
+    let player_data = get_struct_player_data(data)?;
+
     let url = "mysql://root:root@localhost:3306/sandbox";
     let pool = Pool::new(Opts::from_url(url).unwrap()).unwrap();
     let mut conn = pool.get_conn().unwrap();
@@ -37,6 +55,12 @@ async fn post_player_data<'a>(mut data: Data<'a>) -> String {
             let r: (String, i32, f32, String) = from_row(row.unwrap());
             println!("{}, {}, {}, {}", r.0, r.1, r.2, r.3);
         });
+}
+
+#[post("/player/data", format = "application/json", data = "<data>")]
+async fn post_player_data<'a>(mut data: Data<'a>) -> String {
+    let player_data = get_struct_player_data(data);
+    println!("All of the data: {:?}", player_data);
 
     "".to_string()
 }
